@@ -67,15 +67,15 @@ export const CreateGatewayKeyModal: React.FC<CreateGatewayKeyModalProps> = ({ is
   if (!isOpen) return null;
 
   const reset = () => {
-    setName(''); setDesc(''); setRateLimit(60); setRawKey(null); setCopied(false); setCapabilities(defaultCapabilities); setAllowedProviders([]); setAllowedAccounts([]); setAllowedBrowserSessions([]); setProviderScopeMode('all'); setAccountScopeMode('all'); setBrowserScopeMode('all'); setExpiresAt('');
+    setName(''); setDesc(''); setRateLimit(60); setRawKey(null); setCopied(false); setCapabilities(defaultCapabilities); setAllowedProviders([]); setAllowedAccounts([]); setAllowedBrowserSessions([]); setProviderScopeMode('all'); setAccountScopeMode('all'); setBrowserScopeMode('all'); setExpireMode('none'); setExpireLocal('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    if (providerScopeMode === 'restricted' && allowedProviders.length === 0) return alert('Select at least one provider or leave provider scope unrestricted.');
-    if (accountScopeMode === 'restricted' && accounts.length && allowedAccounts.length === 0) return alert('Select at least one account or leave account scope unrestricted.');
-    if (browserScopeMode === 'restricted' && browserSessions.length && allowedBrowserSessions.length === 0) return alert('Select at least one browser session or leave browser scope unrestricted.');
+    const providers = providerScopeMode === 'restricted' && allowedProviders.length ? allowedProviders : [];
+    const accountsScope = accountScopeMode === 'restricted' && allowedAccounts.length ? allowedAccounts : [];
+    const browsersScope = browserScopeMode === 'restricted' && allowedBrowserSessions.length ? allowedBrowserSessions : [];
     setIsLoading(true);
     try {
       const res = await fetch('/api/gateway/keys', {
@@ -86,9 +86,9 @@ export const CreateGatewayKeyModal: React.FC<CreateGatewayKeyModalProps> = ({ is
           description: desc.trim() || undefined,
           rateLimit,
           capabilities,
-          allowedProviders: providerScopeMode === 'restricted' ? allowedProviders : [],
-          allowedAccounts: accountScopeMode === 'restricted' ? allowedAccounts : [],
-          allowedBrowserSessions: browserScopeMode === 'restricted' ? allowedBrowserSessions : [],
+          allowedProviders: providers,
+          allowedAccounts: accountsScope,
+          allowedBrowserSessions: browsersScope,
           expiresAt: expireMode === 'custom' && expireLocal ? new Date(expireLocal).toISOString() : undefined,
         }),
       });
@@ -153,7 +153,7 @@ export const CreateGatewayKeyModal: React.FC<CreateGatewayKeyModalProps> = ({ is
                 <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Kiro-Agent" className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200" />
               </label>
               <label className="block"><span className="block text-slate-300 font-medium mb-1">Rate Limit</span>
-                <input type="number" min="1" max="1000" value={rateLimit} onChange={(e) => setRateLimit(Math.max(1, Math.min(1000, Number(e.target.value) || 1)))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200" />
+                <input type="number" min="1" max="1000000" value={rateLimit} onChange={(e) => setRateLimit(Math.max(1, Math.min(1000000, Number(e.target.value) || 1)))} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200" />
               </label>
             </div>
             <label className="block"><span className="block text-slate-400 font-medium mb-1">Description</span>

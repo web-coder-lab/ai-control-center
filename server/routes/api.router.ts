@@ -474,7 +474,7 @@ apiRouter.post('/gateway/keys', (req: Request, res: Response) => {
       if (cap.id in capabilities && typeof capabilities[cap.id] === 'boolean' && !lockedCapabilities.has(cap.id)) defaultCaps[cap.id] = capabilities[cap.id];
     }
   }
-  const safeRateLimit = Math.max(1, Math.min(10000, Number(rateLimit) || 60));
+  const safeRateLimit = Math.max(1, Math.min(1000000, Number(rateLimit) || 60));
   const safeExpiresAt = expiresAt ? new Date(String(expiresAt)) : undefined;
   if (safeExpiresAt && Number.isNaN(safeExpiresAt.getTime())) return res.status(400).json({ success:false, message:'Invalid expiresAt value.' });
   if (safeExpiresAt && safeExpiresAt.getTime() <= Date.now()) return res.status(400).json({ success:false, message:'expiresAt must be in the future.' });
