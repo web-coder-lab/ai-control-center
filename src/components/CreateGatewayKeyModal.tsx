@@ -35,10 +35,25 @@ export const CreateGatewayKeyModal: React.FC<CreateGatewayKeyModalProps> = ({ is
   const [providerScopeMode, setProviderScopeMode] = useState<'all'|'restricted'>('all');
   const [accountScopeMode, setAccountScopeMode] = useState<'all'|'restricted'>('all');
   const [browserScopeMode, setBrowserScopeMode] = useState<'all'|'restricted'>('all');
-  const [expiresAt, setExpiresAt] = useState('');
+  const [expireMode, setExpireMode] = useState<'none' | 'custom'>('none');
+  const [expireLocal, setExpireLocal] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
+    setName('');
+    setDesc('');
+    setRateLimit(60);
+    setRawKey(null);
+    setCopied(false);
+    setCapabilities(defaultCapabilities);
+    setAllowedProviders([]);
+    setAllowedAccounts([]);
+    setAllowedBrowserSessions([]);
+    setProviderScopeMode('all');
+    setAccountScopeMode('all');
+    setBrowserScopeMode('all');
+    setExpireMode('none');
+    setExpireLocal('');
     Promise.all([fetch('/api/accounts').then((r) => r.json()), fetch('/api/browser/sessions').then((r) => r.json())])
       .then(([a,b]) => { setAccounts(a.accounts || []); setBrowserSessions(b.sessions || []); })
       .catch(() => {});
@@ -74,7 +89,7 @@ export const CreateGatewayKeyModal: React.FC<CreateGatewayKeyModalProps> = ({ is
           allowedProviders: providerScopeMode === 'restricted' ? allowedProviders : [],
           allowedAccounts: accountScopeMode === 'restricted' ? allowedAccounts : [],
           allowedBrowserSessions: browserScopeMode === 'restricted' ? allowedBrowserSessions : [],
-          expiresAt: expiresAt || undefined,
+          expiresAt: expireMode === 'custom' && expireLocal ? new Date(expireLocal).toISOString() : undefined,
         }),
       });
       const data = await res.json();
@@ -144,9 +159,21 @@ export const CreateGatewayKeyModal: React.FC<CreateGatewayKeyModalProps> = ({ is
             <label className="block"><span className="block text-slate-400 font-medium mb-1">Description</span>
               <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What is this key used for?" className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200" />
             </label>
-            <label className="block"><span className="block text-slate-400 font-medium mb-1">Expiration (optional)</span>
-              <input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value ? new Date(e.target.value).toISOString() : '')} className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200" />
-            </label>
+            <div className="space-y-2">
+              <span className="block text-slate-400 font-medium">Expiration</span>
+              <div className="flex gap-3 text-slate-300">
+                <label className="flex items-center gap-2"><input type="radio" checked={expireMode === 'none'} onChange={() => { setExpireMode('none'); setExpireLocal(''); }} /> No expiry</label>
+                <label className="flex items-center gap-2"><input type="radio" checked={expireMode === 'custom'} onChange={() => setExpireMode('custom')} /> Set date and time</label>
+              </div>
+              {expireMode === 'custom' && (
+                <input
+                  type="datetime-local"
+                  value={expireLocal}
+                  onChange={(e) => setExpireLocal(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200"
+                />
+              )}
+            </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-4">
               <div>

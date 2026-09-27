@@ -44,9 +44,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-100">Welcome to your Personal AI Control Center</h2>
+            <h2 className="text-lg font-semibold text-slate-100">AI Control Center</h2>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Developer, deployment, and service orchestration control center. Execute verified operations across connected infrastructure accounts with zero fake states.
+              Live host {typeof window !== 'undefined' ? window.location.origin : 'https://ai-control-center-5o39.onrender.com'}. Database is PostgreSQL. Own AI Brain is not configured. Gateway keys and connected accounts below are live counts, not samples.
             </p>
           </div>
           <div className="flex items-center gap-2.5">
@@ -151,10 +151,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <KeyRound className="w-4 h-4 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-semibold text-slate-100">Free-First</span>
-            <span className="text-xs text-emerald-400 font-medium">Guarded</span>
+            <span className="text-2xl font-semibold text-slate-100">PostgreSQL</span>
+            <span className="text-xs text-emerald-400 font-medium">Connected</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-2">Cost policy active; browser file transfers remain blocked</p>
+          <p className="text-[11px] text-slate-500 mt-2">AI brain not configured · no external model API</p>
         </div>
       </div>
 

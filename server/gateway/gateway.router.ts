@@ -13,6 +13,13 @@ export const gatewayRouter = Router();
 
 // In-memory rate limiting map for gateway keys
 const rateLimits = new Map<string, { count: number; windowStart: number }>();
+export function getRateSnapshot(keyId: string, limit: number) {
+  const now = Date.now();
+  const rl = rateLimits.get(keyId);
+  if (!rl || now - rl.windowStart > 60000) return { used: 0, remaining: limit, resetMs: 60000 };
+  return { used: rl.count, remaining: Math.max(0, limit - rl.count), resetMs: Math.max(0, 60000 - (now - rl.windowStart)) };
+}
+
 
 /**
  * Gateway Authentication & Live Permission Check Middleware

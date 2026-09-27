@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import type { GatewayKey, TokenRequest, ProviderConnection, BrowserSession, ActivityLog } from '../../shared/types.js';
 import { SYSTEM_CAPABILITIES } from '../../shared/capabilities.js';
+import { appOrigin } from '../appOrigin.js';
+
+type GatewayKeyCard = GatewayKey & { rateUsed?: number; rateRemaining?: number; rateResetMs?: number };
 
 const lockedCapabilities = new Set([
   'browser.download', 'browser.upload', 'browser.cookie.read', 'browser.cookie.write', 'browser.cookie.delete',
@@ -23,7 +26,7 @@ const lockedCapabilities = new Set([
 ]);
 
 interface GatewayViewProps {
-  keys: GatewayKey[];
+  keys: GatewayKeyCard[];
   tokenRequests: TokenRequest[];
   onOpenCreateKeyModal: () => void;
   onRefresh: () => void;
@@ -89,6 +92,25 @@ export const GatewayView: React.FC<GatewayViewProps> = ({
       if (!res.ok) throw new Error((await res.json()).message || 'Failed to update key status');
       onRefresh();
     } catch (err:any) { alert(err.message || 'Failed to update key status'); }
+  };
+
+  const handleRenameKey = async (id: string, current: string) => {
+    const next = window.prompt('Rename this Gateway key', current);
+    if (next == null) return;
+    const keyName = next.trim();
+    if (!keyName || keyName === current) return;
+    try {
+      const res = await fetch(`/api/gateway/keys/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyName }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || 'Rename failed');
+      onRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Rename failed');
+    }
   };
 
   const handleRevokeKey = async (id: string, name: string) => {
@@ -228,19 +250,14 @@ export const GatewayView: React.FC<GatewayViewProps> = ({
                     </div>
 
                     <div className="mt-4 p-3 rounded-lg bg-slate-950/70 border border-slate-800/80 space-y-1.5 text-xs">
-                      <div className="flex items-center justify-between text-slate-400">
-                        <span>Key Identification:</span>
-                        <span className="font-mono text-slate-300 text-[11px]">{k.keyPrefix}...{k.keyLast4}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-400">
-                        <span>Permission Revision:</span>
-                        <span className="font-mono text-indigo-400 font-semibold">v{k.permissionVersion || 1}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-400">
-                        <span>Rate Limit:</span>
-                        <span className="font-mono text-slate-300">{k.rateLimit} req/min</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-400"><span>Expires:</span><span className="font-mono text-slate-300 text-[11px]">{k.expiresAt ? new Date(k.expiresAt).toLocaleString() : 'Never'}</span></div>
+                      <div className="flex items-center justify-between text-slate-400"><span>Stored secret:</span><span className="font-mono text-slate-300 text-[11px]">{k.keyPrefix}••••{k.keyLast4}</span></div>
+                      <div className="flex items-center justify-between text-slate-400"><span>Rate limit:</span><span className="font-mono text-slate-300">{k.rateLimit} / min</span></div>
+                      <div className="flex items-center justify-between text-slate-400"><span>Remaining this minute:</span><span className="font-mono text-slate-300">{typeof k.rateRemaining === 'number' ? `${k.rateRemaining} / ${k.rateLimit}` : `${k.rateLimit} / ${k.rateLimit}`}</span></div>
+                      <div className="flex items-center justify-between text-slate-400"><span>Expires:</span><span className="font-mono text-slate-300 text-[11px]">{k.expiresAt ? new Date(k.expiresAt).toLocaleString() : 'No expiry'}</span></div>
+                      <div className="flex items-center justify-between text-slate-400"><span>Created:</span><span className="font-mono text-slate-300 text-[11px]">{k.createdAt ? new Date(k.createdAt).toLocaleString() : '—'}</span></div>
+                      <div className="flex items-center justify-between text-slate-400"><span>Last used:</span><span className="font-mono text-slate-300 text-[11px]">{k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleString() : 'Never'}</span></div>
+                      <div className="flex items-center justify-between text-slate-400"><span>Checked:</span><span className="font-mono text-slate-300 text-[11px]">{new Date().toLocaleDateString()}</span></div>
+                      <div className="flex items-center justify-between text-slate-400"><span>Permission revision:</span><span className="font-mono text-indigo-400 font-semibold">v{k.permissionVersion || 1}</span></div>
                     </div>
                   </div>
 
@@ -255,6 +272,7 @@ export const GatewayView: React.FC<GatewayViewProps> = ({
                       Edit Live Permissions &rarr;
                     </button>
                     <div className="flex items-center gap-3">
+                      <button onClick={() => handleRenameKey(k.id, k.keyName)} className="text-xs text-slate-500 hover:text-indigo-300 cursor-pointer">Rename</button>
                       {(k.status === 'active' || k.status === 'disabled') && <button onClick={() => handleSetKeyStatus(k.id, k.keyName, k.status === 'active' ? 'disabled' : 'active')} className="text-xs text-slate-500 hover:text-indigo-300 cursor-pointer">{k.status === 'active' ? 'Disable' : 'Enable'}</button>}
                       {k.status === 'active' && (
                         <button
@@ -512,12 +530,12 @@ export const GatewayView: React.FC<GatewayViewProps> = ({
               <span>External AI Gateway API Specification (v1)</span>
             </h3>
             <p className="text-slate-400">
-              Connect external AI agents using your Bearer Gateway API Key.
+              Live control center: {appOrigin()}. Connect a Gateway key as a Bearer token. Own AI Brain stays not configured until you attach a local brain.
             </p>
             <div className="p-3 rounded-lg bg-slate-950 font-mono text-[11px] text-slate-300 flex items-center justify-between">
-              <span>Base URL: {window.location.origin}/v1</span>
+              <span>Base URL: {appOrigin()}/v1</span>
               <button
-                onClick={() => handleCopy(`${window.location.origin}/v1`)}
+                onClick={() => handleCopy(`${appOrigin()}/v1`)}
                 className="text-indigo-400 hover:text-indigo-300"
               >
                 Copy
@@ -525,52 +543,43 @@ export const GatewayView: React.FC<GatewayViewProps> = ({
             </div>
           </div>
 
-          {/* Code Samples */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between text-slate-300 font-semibold">
                 <span>cURL (Discover Capabilities)</span>
                 <button
-                  onClick={() =>
-                    handleCopy('curl -H "Authorization: Bearer gw_xxxxxxxx" https://<domain>/v1/capabilities')
-                  }
+                  onClick={() => handleCopy(`curl -X GET ${appOrigin()}/v1/capabilities \\\n  -H "Authorization: Bearer gw_xxxxxxxxxxxx"`)}
                   className="text-slate-400 hover:text-white"
                 >
                   {copiedText ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               </div>
-              <pre className="p-3 rounded-lg bg-slate-950 text-slate-300 font-mono text-[11px] overflow-x-auto">
-{`curl -X GET https://<your-domain>/v1/capabilities \\
+              <pre className="p-3 rounded-lg bg-slate-950 text-slate-300 font-mono text-[11px] overflow-x-auto">{`curl -X GET ${appOrigin()}/v1/capabilities \\
   -H "Authorization: Bearer gw_xxxxxxxxxxxx" \\
-  -H "Content-Type: application/json"`}
-              </pre>
+  -H "Content-Type: application/json"`}</pre>
             </div>
 
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between text-slate-300 font-semibold">
                 <span>JavaScript / TypeScript (Submit Task)</span>
                 <button
-                  onClick={() =>
-                    handleCopy(`const res = await fetch('https://<domain>/v1/tasks', { ... });`)
-                  }
+                  onClick={() => handleCopy(`await fetch('${appOrigin()}/v1/tasks', { method: 'POST', headers: { Authorization: 'Bearer gw_xxxxxxxxxxxx', 'Content-Type': 'application/json' }, body: JSON.stringify({ request: 'List my accounts' }) })`)}
                   className="text-slate-400 hover:text-white"
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <pre className="p-3 rounded-lg bg-slate-950 text-slate-300 font-mono text-[11px] overflow-x-auto">
-{`const response = await fetch('https://<domain>/v1/tasks', {
+              <pre className="p-3 rounded-lg bg-slate-950 text-slate-300 font-mono text-[11px] overflow-x-auto">{`const response = await fetch('${appOrigin()}/v1/tasks', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer gw_xxxxxxxxxxxx',
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    request: 'Deploy repo-alpha to Render'
+    request: 'List my connected accounts'
   })
 });
-const { taskId } = await response.json();`}
-              </pre>
+const { taskId } = await response.json();`}</pre>
             </div>
           </div>
         </div>

@@ -26,7 +26,16 @@ export const ConnectAccountModal: React.FC<ConnectAccountModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) setProvider(defaultProvider);
+    if (!isOpen) return;
+    setProvider(defaultProvider);
+    setName('');
+    setToken('');
+    setLabel('');
+    setPurpose('');
+    setDescription('');
+    setHowToUse('');
+    setError(null);
+    setIsLoading(false);
   }, [isOpen, defaultProvider]);
 
   if (!isOpen) return null;

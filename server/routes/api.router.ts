@@ -22,6 +22,7 @@ import type { ProviderConnection, GatewayKey, BrowserSession, Project } from '..
 import { SYSTEM_CAPABILITIES } from '../../shared/capabilities.js';
 import { renderWorkspaceById, renderWorkspaceOwns } from '../providers/render/workspace.js';
 import { authenticateOwnerPassword, createOwnerSession, destroyOwnerSession, isOwnerAuthenticated, ownerAuthConfigured, requireOwnerAuth } from '../security/owner-auth.js';
+import { getRateSnapshot } from '../gateway/gateway.router.js';
 
 export const apiRouter = Router();
 
@@ -426,7 +427,32 @@ apiRouter.post('/browser/resume', (req: Request, res: Response) => {
  * 6. Gateway Keys & Live Permissions
  */
 apiRouter.get('/gateway/keys', (req: Request, res: Response) => {
-  res.json({ success: true, keys: db.getGatewayKeys() });
+  const keys = db.getGatewayKeys().map((key) => {
+    const rate = getRateSnapshot(key.id, key.rateLimit || 60);
+    const expired = Boolean(key.expiresAt && new Date(key.expiresAt).getTime() <= Date.now());
+    return {
+      ...key,
+      status: expired && key.status === 'active' ? 'expired' : key.status,
+      rateUsed: rate.used,
+      rateRemaining: rate.remaining,
+      rateResetMs: rate.resetMs,
+    };
+  });
+  res.json({ success: true, keys });
+});
+
+apiRouter.patch('/gateway/keys/:id', (req: Request, res: Response) => {
+  const key = db.getGatewayKeyById(req.params.id);
+  if (!key) return res.status(404).json({ success: false, message: 'Gateway key not found' });
+  const nextName = typeof req.body?.keyName === 'string' ? req.body.keyName.trim() : '';
+  const nextDesc = typeof req.body?.description === 'string' ? req.body.description.trim() : undefined;
+  if (nextName) {
+    if (nextName.length > 100) return res.status(400).json({ success: false, message: 'Key name is too long.' });
+    key.keyName = nextName;
+  }
+  if (nextDesc !== undefined) key.description = nextDesc;
+  db.saveGatewayKey(key);
+  res.json({ success: true, key });
 });
 
 apiRouter.post('/gateway/keys', (req: Request, res: Response) => {
