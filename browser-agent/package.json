@@ -1,0 +1,19 @@
+{
+  "name": "ai-control-center-browser-agent",
+  "version": "1.0.0",
+  "description": "Local Playwright companion agent for AI Control Center",
+  "type": "module",
+  "scripts": {
+    "start": "tsx agent.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0",
+    "ws": "^8.18.0",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.7.2"
+  }
+}

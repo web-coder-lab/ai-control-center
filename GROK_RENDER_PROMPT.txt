@@ -1,0 +1,82 @@
+Is ZIP ko **AI CONTROL CENTER final source of truth** samjho. Is project ko Render par production-style deploy karo.
+
+IMPORTANT FINAL DECISIONS:
+- Kisi bhi external AI API ko add, enable, configure ya replace mat karna.
+- Koi Gemini/OpenAI/Anthropic/Grok/model API integration mat banana.
+- Google Developer API, Google OAuth Client ID/Secret ya Google Workspace API credential mat mangna.
+- Google services is project mein browser-only hain; local browser agent baad mein owner ke computer par chalega.
+- Main AI brain abhi intentionally NOT CONFIGURED hai. Isay fake AI, keyword bot ya hosted model se replace mat karna.
+- PostgreSQL actual runtime database hai. Local JSON database use nahi karna.
+- Browser-agent ko Render par run mat karna; woh owner ke PC par local process hai.
+- Koi fake deployment, fake URL, fake success ya mock data add mat karna.
+- Koi paid plan, paid upgrade ya billing action owner ki explicit approval ke baghair mat karna.
+
+DEPLOYMENT SETTINGS:
+1) Render mein ek Web Service create karo.
+2) Runtime: Node.
+3) Build Command: npm install && npm run build
+4) Start Command: npm start
+5) Health Check Path: /health
+6) Service ko 0.0.0.0 par PORT environment variable use karne do; code already PORT handle karta hai.
+7) Render PostgreSQL database create karo, preferably same region mein.
+8) Web Service ke DATABASE_URL ko us Render PostgreSQL database ke INTERNAL connection URL se connect karo. External DB URL tabhi use karna jab absolutely zaroori ho.
+9) Agar PostgreSQL create karne ke liye paid plan/charge required ho aur free/no-cost option genuinely available na ho, koi purchase mat karna; deployment ko us point par rok kar mujhe batao.
+
+REQUIRED ENVIRONMENT VARIABLES:
+- NODE_ENV=production
+- APP_URL=<final Render service URL>
+- DATABASE_URL=<Render PostgreSQL internal connection URL>
+- ENCRYPTION_MASTER_KEY=<strong permanent secret>
+- SESSION_SECRET=<strong secret>
+- GATEWAY_SIGNING_SECRET=<strong secret>
+- BROWSER_AGENT_SHARED_SECRET=<strong secret>
+- OWNER_PASSWORD=<strong owner login password>
+
+ENV RULES:
+- Secrets ko Render Secret Environment Variables mein rakho.
+- Raw secrets ko source code, logs, screenshots, public response ya repo mein commit mat karna.
+- ENCRYPTION_MASTER_KEY deploys ke darmiyan change mat karna, warna existing encrypted credentials decrypt nahi honge.
+- DATABASE_URL ko public/client-side code mein expose mat karna.
+
+DATABASE / STARTUP CHECKS:
+- App startup ko PostgreSQL se connect hona chahiye.
+- control_center_state runtime table automatically initialize hoti hai.
+- /health ko hit karke verify karo ke service healthy hai.
+- /api/health aur owner login ke baad /api/system/diagnostics check karo.
+- Diagnostics mein database PostgreSQL dikhna chahiye.
+- AI brain ka status NOT CONFIGURED / user-owned-self-hosted hona chahiye. Isay ready/active fake mat dikhana.
+
+SOURCE INTEGRITY:
+- Existing code ko unnecessarily redesign mat karo.
+- Existing React/Vite + Node/Express architecture ko preserve karo.
+- package-lock na hone ki wajah se `npm ci` mat use karo; `npm install` use karo.
+- package.json mein `pg` runtime dependency aur Node >=20 requirement already defined hai.
+- Existing provider adapters aur security controls ko remove mat karo.
+
+AFTER DEPLOYMENT VERIFY:
+1) Render build successful.
+2) Service starts successfully.
+3) /health returns healthy.
+4) Frontend opens without 404.
+5) Owner login works.
+6) PostgreSQL health is healthy.
+7) No external AI/model API environment variable is present.
+8) No Google API/OAuth environment variable is present.
+9) No local JSON database is being used.
+10) Browser Agent is shown as separate/local and not required for basic server startup.
+
+FAILURE RULE:
+Agar koi error aaye to actual Render logs ka exact safe error category/message identify karo. Guess karke success mat bolo. Paid upgrade, external AI dependency, Google API credential, ya risky workaround add mat karo.
+
+FINAL REPORT:
+Mujhe sirf ye batao:
+- Render Web Service URL
+- PostgreSQL connected: YES/NO
+- /health: PASS/FAIL
+- Owner login: PASS/FAIL
+- Build: PASS/FAIL
+- Start: PASS/FAIL
+- External AI API used: NO
+- Google API/OAuth used: NO
+- Koi paid resource create/upgrade hua: YES/NO
+- Agar kuch fail hua to exact next required action
