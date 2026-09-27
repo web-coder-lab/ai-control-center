@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ServicesView() {
+export function ServicesView() {
   const services = [
     { id:'github', name:'GitHub', category:'Code & repositories', description:'Connect real GitHub accounts for repository operations and deployment source control.' },
     { id:'render', name:'Render', category:'Deployment', description:'Connect Render accounts/workspaces for real services, deployments, logs, domains and environment configuration.' },
