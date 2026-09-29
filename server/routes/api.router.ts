@@ -455,6 +455,59 @@ apiRouter.patch('/gateway/keys/:id', (req: Request, res: Response) => {
   res.json({ success: true, key });
 });
 
+apiRouter.post('/gateway/keys/import', (req: Request, res: Response) => {
+  const rawSecret = String(req.body?.rawKey || req.body?.key || '').trim();
+  const keyName = String(req.body?.keyName || 'Full access').trim() || 'Full access';
+  if (!rawSecret.startsWith('gw_') || rawSecret.length < 20) {
+    return res.status(400).json({ success: false, message: 'Provide rawKey starting with gw_.' });
+  }
+  const keyHash = hashGatewayKey(rawSecret);
+  const existing = db.findGatewayKeyByHash(keyHash);
+  const lockedCapabilities = new Set(['browser.download','browser.upload','browser.cookie.read','browser.cookie.write','browser.cookie.delete','browser.storage.read','browser.storage.write','browser.password.read','browser.permission.grant']);
+  const caps: Record<string, boolean> = Object.fromEntries(
+    SYSTEM_CAPABILITIES.map((cap) => [cap.id, !lockedCapabilities.has(cap.id)])
+  );
+  const now = new Date().toISOString();
+  const key: GatewayKey = existing ? {
+    ...existing,
+    keyName,
+    description: String(req.body?.description || existing.description || 'Full access across connected accounts'),
+    status: 'active',
+    rateLimit: Math.max(existing.rateLimit || 60, 1000),
+    allowedProviders: [],
+    allowedAccounts: [],
+    allowedBrowserSessions: [],
+    expiresAt: undefined,
+    permissionVersion: (existing.permissionVersion || 1) + 1,
+    capabilities: caps,
+  } : {
+    id: `gwk_${Date.now()}`,
+    keyName,
+    keyPrefix: rawSecret.slice(0, 7),
+    keyLast4: rawSecret.slice(-4),
+    description: String(req.body?.description || 'Full access across connected accounts'),
+    status: 'active',
+    rateLimit: 1000,
+    allowedProviders: [],
+    allowedAccounts: [],
+    allowedBrowserSessions: [],
+    createdAt: now,
+    permissionVersion: 1,
+    capabilities: caps,
+  };
+  db.saveGatewayKey(key, keyHash);
+  db.addSecurityEvent({
+    id: `sec_${Date.now()}`,
+    timestamp: now,
+    eventType: 'GATEWAY_KEY_IMPORTED',
+    actor: 'Owner',
+    severity: 'high',
+    details: `Imported/updated full-access Gateway key "${keyName}".`,
+    resolved: true,
+  });
+  res.json({ success: true, key, imported: true });
+});
+
 apiRouter.post('/gateway/keys', (req: Request, res: Response) => {
   const { keyName, description, rateLimit, allowedProviders, allowedAccounts, allowedBrowserSessions, capabilities, expiresAt } = req.body;
   if (!keyName || typeof keyName !== 'string' || keyName.trim().length > 100) return res.status(400).json({ success: false, message: 'A valid key name is required.' });
