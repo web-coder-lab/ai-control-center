@@ -505,7 +505,9 @@ apiRouter.post('/gateway/keys/import', (req: Request, res: Response) => {
     details: `Imported/updated full-access Gateway key "${keyName}".`,
     resolved: true,
   });
-  res.json({ success: true, key, imported: true });
+  const safe = { ...key } as any;
+  delete safe.keyHash;
+  res.json({ success: true, key: safe, imported: true });
 });
 
 apiRouter.post('/gateway/keys', (req: Request, res: Response) => {

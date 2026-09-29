@@ -20,6 +20,7 @@ interface DashboardViewProps {
   deployments: Deployment[];
   tasks: Task[];
   logs: ActivityLog[];
+  keys?: { status: string; keyName?: string }[];
   onNavigate: (tab: any) => void;
   onOpenUploadZip: () => void;
   onQuickChatPrompt: (prompt: string) => void;
@@ -30,6 +31,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   deployments,
   tasks,
   logs,
+  keys = [],
   onNavigate,
   onOpenUploadZip,
   onQuickChatPrompt,
@@ -37,6 +39,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const activeTasks = tasks.filter((t) => t.status === 'executing' || t.status === 'planning');
   const recentLogs = logs.slice(0, 6);
   const liveDeployments = deployments.filter((d) => d.status === 'live');
+  const activeKeys = keys.filter((k) => k.status === 'active');
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -151,11 +154,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <KeyRound className="w-4 h-4 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-semibold text-slate-100">PostgreSQL</span>
-            <span className="text-xs text-emerald-400 font-medium">Connected</span>
+            <span className="text-2xl font-semibold text-slate-100">{activeKeys.length}</span>
+            <span className="text-xs text-emerald-400 font-medium">gateway keys live</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-2">AI brain not configured · no external model API</p>
+          <p className="text-[11px] text-slate-500 mt-2">Hashes never shown · owner session httpOnly</p>
         </div>
+      </div>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap gap-3 text-[11px] text-slate-400">
+        <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">CSP + HSTS</span>
+        <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Owner cookie httpOnly</span>
+        <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Login rate limit</span>
+        <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Gateway handshake</span>
+        <span className="px-2 py-1 rounded bg-slate-800 text-slate-300">{accounts.filter((a)=>a.provider==='github').length} GitHub accounts</span>
+        <button onClick={() => onNavigate('gateway')} className="ml-auto text-indigo-400 hover:text-indigo-300">Manage keys →</button>
       </div>
 
       {/* Main Content Split: Recent Verified Activities & Current Account Identities */}

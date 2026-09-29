@@ -50,7 +50,7 @@ export function createOwnerSession(res: Response) {
   sessions.set(token, Date.now() + SESSION_TTL_MS);
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
     maxAge: SESSION_TTL_MS,
     path: '/',
@@ -60,7 +60,7 @@ export function createOwnerSession(res: Response) {
 export function destroyOwnerSession(req: Request, res: Response) {
   const token = getCookie(req, COOKIE_NAME);
   if (token) sessions.delete(token);
-  res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' });
+  res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production', path: '/' });
 }
 
 export function isOwnerAuthenticated(req: Request) {

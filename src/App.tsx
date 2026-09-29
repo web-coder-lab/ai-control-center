@@ -220,6 +220,7 @@ export default function App() {
               deployments={deployments}
               tasks={tasks}
               logs={logs}
+              keys={keys}
               onNavigate={setCurrentTab}
               onOpenUploadZip={() => setIsUploadZipModalOpen(true)}
               onQuickChatPrompt={handleQuickChatPrompt}
