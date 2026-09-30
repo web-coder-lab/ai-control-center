@@ -6,6 +6,7 @@ import { VercelProvider } from './vercel/vercel.provider.js';
 import { NetlifyProvider } from './netlify/netlify.provider.js';
 import { SupabaseProvider } from './supabase/supabase.provider.js';
 import { DigitalOceanProvider } from './digitalocean/digitalocean.provider.js';
+import { GitDbProvider } from './gitdb/gitdb.provider.js';
 
 const adapters: Record<string, ProviderAdapter> = {
   github: new GitHubProvider(),
@@ -15,6 +16,7 @@ const adapters: Record<string, ProviderAdapter> = {
   netlify: new NetlifyProvider(),
   supabase: new SupabaseProvider(),
   digitalocean: new DigitalOceanProvider(),
+  gitdb: new GitDbProvider(),
 };
 
 export function getProviderAdapter(provider: string): ProviderAdapter {

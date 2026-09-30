@@ -114,7 +114,7 @@ export const ConnectAccountModal: React.FC<ConnectAccountModalProps> = ({
           <div>
             <label className="block font-medium text-slate-300 mb-1.5">Select Provider</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {(['github', 'render', 'cloudflare', 'vercel', 'netlify', 'supabase', 'digitalocean'] as ProviderType[]).map((p) => (
+              {(['github', 'render', 'cloudflare', 'vercel', 'netlify', 'supabase', 'digitalocean', 'gitdb'] as ProviderType[]).map((p) => (
                 <button
                   key={p}
                   type="button"
@@ -154,6 +154,8 @@ export const ConnectAccountModal: React.FC<ConnectAccountModalProps> = ({
                     ? 'GitHub Personal Access Token (classic or fine-grained)'
                     : provider === 'render'
                     ? 'Render API Key (rnd_...)'
+                    : provider === 'gitdb'
+                    ? 'GitDB API key (github-store)'
                     : 'API Token / Secret'}
                 </span>
               </label>

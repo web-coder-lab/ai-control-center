@@ -1,4 +1,4 @@
-export type ProviderType = 'github' | 'render' | 'cloudflare' | 'vercel' | 'netlify' | 'supabase' | 'digitalocean';
+export type ProviderType = 'github' | 'render' | 'cloudflare' | 'vercel' | 'netlify' | 'supabase' | 'digitalocean' | 'gitdb';
 
 export type TaskStatus =
   | 'queued'

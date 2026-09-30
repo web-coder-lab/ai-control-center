@@ -9,6 +9,7 @@ import { apiRouter } from './server/routes/api.router.js';
 import { gatewayRouter } from './server/gateway/gateway.router.js';
 import { browserManager } from './server/browser/browser.manager.js';
 import { db } from './server/database/db.js';
+import { seedGitdbFromEnv } from './server/providers/gitdb/seed.js';
 import { isOwnerAuthenticatedFromHeaders } from './server/security/owner-auth.js';
 import { hashBrowserPairingCode } from './server/security/vault.js';
 import { broadcastEvent, registerRealtimeSocket, unregisterRealtimeSocket } from './server/realtime/events.js';
@@ -130,7 +131,7 @@ async function setupViteOrStatic() {
   }
 }
 
-db.initialize().then(() => setupViteOrStatic()).then(() => {
+db.initialize().then(() => seedGitdbFromEnv().catch((err) => console.error('[GitDB] seed failed:', err))).then(() => setupViteOrStatic()).then(() => {
   server.listen(PORT, '0.0.0.0', () => {
     console.log(`[AI Control Center] Server running at http://0.0.0.0:${PORT}`);
   });

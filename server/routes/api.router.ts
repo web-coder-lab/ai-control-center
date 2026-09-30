@@ -914,6 +914,39 @@ apiRouter.delete('/uploads/:uploadId', (req: Request, res: Response) => {
   res.json({ success: true });
 });
 
+function gitdbSecret() {
+  const conn = db.getConnections().find((c) => c.provider === 'gitdb' && (c.status === 'valid' || c.status === 'connected'));
+  if (conn) {
+    const enc = db.getEncryptedSecret(conn.id);
+    if (enc) return decryptSecret(enc);
+  }
+  return process.env.GITDB_API_KEY || '';
+}
+
+apiRouter.get('/gitdb/status', async (_req: Request, res: Response) => {
+  const secret = gitdbSecret();
+  if (!secret) return res.json({ success: true, connected: false, message: 'GitDB key is not connected yet.' });
+  try {
+    const adapter = getProviderAdapter('gitdb');
+    const health = await adapter.healthCheck(secret);
+    const objects = await adapter.listResources(secret, 'objects');
+    res.json({ success: true, connected: health.healthy, health, objects: objects.length, baseUrl: process.env.GITDB_BASE_URL || 'https://github-store.onrender.com' });
+  } catch (err: any) {
+    res.status(502).json({ success: false, connected: false, message: err.message });
+  }
+});
+
+apiRouter.get('/gitdb/objects', async (_req: Request, res: Response) => {
+  const secret = gitdbSecret();
+  if (!secret) return res.status(400).json({ success: false, message: 'Connect a GitDB key first.' });
+  try {
+    const items = await getProviderAdapter('gitdb').listResources(secret, 'objects');
+    res.json({ success: true, items });
+  } catch (err: any) {
+    res.status(502).json({ success: false, message: err.message });
+  }
+});
+
 /**
  * 11. System Self-Test & Diagnostics
  */

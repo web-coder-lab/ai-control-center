@@ -49,7 +49,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <h2 className="text-lg font-semibold text-slate-100">AI Control Center</h2>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Live host {typeof window !== 'undefined' ? window.location.origin : 'https://ai-control-center-5o39.onrender.com'}. Database is PostgreSQL. Own AI Brain is not configured. Gateway keys and connected accounts below are live counts, not samples.
+              Live host {typeof window !== 'undefined' ? window.location.origin : 'https://ai-control-center-5o39.onrender.com'}. Database is PostgreSQL. Own AI Brain is not configured. Object database is GitDB at github-store.onrender.com. Gateway keys and connected accounts below are live counts, not samples.
             </p>
           </div>
           <div className="flex items-center gap-2.5">

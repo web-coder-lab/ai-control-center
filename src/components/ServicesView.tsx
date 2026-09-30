@@ -9,6 +9,7 @@ export function ServicesView() {
     { id:'netlify', name:'Netlify', category:'Deployment', description:'Connect Netlify API credentials for supported sites and deployments.' },
     { id:'supabase', name:'Supabase', category:'Database & backend', description:'Connect Supabase API credentials for supported project operations.' },
     { id:'digitalocean', name:'DigitalOcean', category:'Infrastructure', description:'Connect DigitalOcean API credentials for supported infrastructure operations.' },
+        { id:'gitdb', name:'GitDB', category:'Database', description:'Git-native object database at github-store.onrender.com. Lists and writes real objects with a GitDB API key.' },
     { id:'google-browser', name:'Google (Browser Only)', category:'Web services', description:'Use Gmail, Sheets, Drive, Ads and other Google web interfaces through isolated local Chrome sessions. No Google API/OAuth credentials are used.' },
   ];
   return <div className="p-6 space-y-4">
